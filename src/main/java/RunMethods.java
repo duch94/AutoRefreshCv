@@ -1,9 +1,6 @@
 import com.codeborne.selenide.WebDriverRunner;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.tools.internal.xjc.reader.xmlschema.bindinfo.BIConversion;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import com.fasterxml.jackson.dataformat.yaml.*;
@@ -22,7 +19,7 @@ import java.util.TimerTask;
     TO-DO:
 
     1) Вынести логин, пароль, урл резюме в отдельный конфиг (/)
-    2) Вписывать в моки из конфига логин, пароль, урл резюме
+    2) Вписывать в моки из конфига логин, пароль, урл резюме (/)
     3) Добавить планировщик запуска (/)
      */
 
@@ -76,62 +73,6 @@ public class RunMethods {
         }
     }
 
-    public class UserDataYaml {
-        @JsonProperty
-        public String login;
-        @JsonProperty
-        public String password;
-        @JsonProperty
-        public String fullUserName;
-        @JsonProperty
-        public String cvUrl;
-
-        public UserDataYaml() {
-            login = "";
-            password = "";
-            fullUserName = "";
-            cvUrl = "";
-        }
-
-        public void setLogin(String newLogin) {
-            login = newLogin;
-        }
-        public void setPassword(String newPassword) {
-            password = newPassword;
-        }
-        public void setFullUserName(String newFullUserName) {
-            fullUserName = newFullUserName;
-        }
-        public void setCvUrl(String newCvUrl) {
-            cvUrl = newCvUrl;
-        }
-
-        public String getLogin() {
-            return login;
-        }
-        public String getPassword() {
-            return password;
-        }
-        public String getFullUserName() {
-            return fullUserName;
-        }
-        public String getCvUrl() {
-            return cvUrl;
-        }
-    }
-
-    public static UserDataYaml getUserData(String path) {
-        File file = new File(path);
-        final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        UserDataYaml parsedUserData = null;
-        try {
-            parsedUserData = mapper.readValue(file, UserDataYaml.class);
-        } catch (java.io.IOException e) {
-            System.out.println(e.getCause().toString());
-        }
-        return parsedUserData;
-    }
-
     public static void main(String[] args) {
         long second = 1000;
         long minute = second * 60;
@@ -144,16 +85,59 @@ public class RunMethods {
         timer.scheduleAtFixedRate(task, 0, autorepeatTime);
     }
     
-    static class MyScheduledTask extends TimerTask {
-        @Override
-        public void run() {
-            String testsPath = "conf/jobs.yml";
-            String userDataPath = "conf/userdata.yml";
-            UserDataYaml userData = getUserData(userDataPath);
-            List<String> tests = getTests(testsPath);
-            CvRefresh self = new CvRefresh();
-            runTestMethods(self, tests);
+}
+
+class MyScheduledTask extends TimerTask {
+    RunMethods runner = new RunMethods();
+
+    @Override
+    public void run() {
+        String testsPath = "conf/jobs.yml";
+        String userDataPath = "conf/userdata.yml";
+        UserDataYaml userData = new UserDataYaml();
+        userData.loadUserDataFromFile(userDataPath);
+        List<String> tests = runner.getTests(testsPath);
+        CvRefresh self = new CvRefresh();
+        runner.runTestMethods(self, tests);
+    }
+}
+
+class UserDataYaml {
+    @JsonProperty
+    public String login;
+    @JsonProperty
+    public String password;
+    @JsonProperty
+    public String fullUserName;
+    @JsonProperty
+    public String cvUrl;
+
+    public UserDataYaml() {
+        login = "";
+        password = "";
+        fullUserName = "";
+        cvUrl = "";
+    }
+
+
+    public void loadUserDataFromFile(String path) {
+        File file = new File(path);
+        final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        UserDataYaml parsedUserData = null;
+        try {
+            parsedUserData = mapper.readValue(file, UserDataYaml.class);
+            System.out.println("Data parsed!");
+            loadUserData(parsedUserData);
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
         }
     }
-    
+
+    private void loadUserData(UserDataYaml data) {
+        Mocks.Login.login = data.login;
+        Mocks.Login.password = data.password;
+        Mocks.Login.fullUserName = data.fullUserName;
+        Mocks.CV.url = data.cvUrl;
+        System.out.println("Data loaded!");
+    }
 }
