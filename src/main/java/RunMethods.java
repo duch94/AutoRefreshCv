@@ -144,7 +144,7 @@ public class RunMethods {
         timer.scheduleAtFixedRate(task, 0, autorepeatTime);
     }
     
-    class MyScheduledTask extends TimerTask {
+    static class MyScheduledTask extends TimerTask {
         @Override
         public void run() {
             String testsPath = "conf/jobs.yml";
