@@ -15,13 +15,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 
     /*
     TO-DO:
 
     1) Вынести логин, пароль, урл резюме в отдельный конфиг (/)
     2) Вписывать в моки из конфига логин, пароль, урл резюме
-    3) Добавить планировщик запуска
+    3) Добавить планировщик запуска (/)
      */
 
 public class RunMethods {
@@ -131,11 +133,27 @@ public class RunMethods {
     }
 
     public static void main(String[] args) {
-        String testsPath = "conf/jobs.yml";
-        String userDataPath = "conf/userdata.yml";
-        UserDataYaml userData = getUserData(userDataPath);
-        List<String> tests = getTests(testsPath);
-        CvRefresh self = new CvRefresh();
-        runTestMethods(self, tests);
+        long second = 1000;
+        long minute = second * 60;
+        long hour = minute * 60;
+        
+        long autorepeatTime = hour * 4 + minute;
+        
+        Timer timer = new Timer();
+        MyScheduledTask task = new MyScheduledTask();
+        timer.scheduleAtFixedRate(task, 0, autorepeatTime);
     }
+    
+    class MyScheduledTask extends TimerTask {
+        @Override
+        public void run() {
+            String testsPath = "conf/jobs.yml";
+            String userDataPath = "conf/userdata.yml";
+            UserDataYaml userData = getUserData(userDataPath);
+            List<String> tests = getTests(testsPath);
+            CvRefresh self = new CvRefresh();
+            runTestMethods(self, tests);
+        }
+    }
+    
 }
