@@ -27,3 +27,4 @@ conf/userdata.yml
 # Idea
 .idea/
 build/
+target/
