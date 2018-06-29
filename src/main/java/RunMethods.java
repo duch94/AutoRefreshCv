@@ -126,14 +126,14 @@ class UserDataYaml {
         UserDataYaml parsedUserData = null;
         try {
             parsedUserData = mapper.readValue(file, UserDataYaml.class);
-            System.out.println("Data parsed!");
-            loadUserData(parsedUserData);
         } catch (java.io.IOException e) {
             e.printStackTrace();
         }
+        System.out.println("Data parsed!");
+        loadUserDataToMocks(parsedUserData);
     }
 
-    private void loadUserData(UserDataYaml data) {
+    private void loadUserDataToMocks(UserDataYaml data) {
         Mocks.Login.login = data.login;
         Mocks.Login.password = data.password;
         Mocks.Login.fullUserName = data.fullUserName;
